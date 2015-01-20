@@ -13,6 +13,9 @@ class mass_spectrum():
 	return np.asarray(self.mzs)
     def get_intensities(self):
 	return np.asarray(self.intensities)
+    def add_centroids(self,mz_list,intensity_list):
+	self.centroids = mz_list
+	self.centroids_intensity = intensity_list
 
 
 

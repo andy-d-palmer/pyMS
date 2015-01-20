@@ -16,29 +16,14 @@ def gradient(mzs,intensities,**opt_args):
     MZgrad = np.gradient(intensities)
     #calc second differential
     MZgrad2 = np.gradient(MZgrad)
-    """
-    #It could either be the left or the right index so check which is the
-    #actual maximum value
-    indiciesRight = indicies + 1
-    indiciesLeft = indicies - 1
-
-    toKeep = indiciesRight<len(intensities)
-    indicies= indicies[toKeep]
-    indiciesRight=indiciesRight[toKeep]
-    indiciesLeft=indiciesLeft[toKeep]
-
-    toKeep = indiciesLeft>=0
-    indicies= indicies[toKeep]
-    indiciesRight=indiciesRight[toKeep]
-    indiciesLeft=indiciesLeft[toKeep]
-    collected = np.argmax(np.concatenate((intensities[indicies], intensities[indiciesRight], intensities[indiciesLeft]),axis=1), axis=1)
-    indicies = np.unique(np.concatenate(indicies[collected == 0],indiciesRight[collected == 1], indiciesLeft[collected == 2]))
-
-"""    
-    indices = MZgrad[0:-2]*MZgrad[1:-1]<=0 # detect crossing points
-    indices[MZgrad2[indices]<0] = False #pick maxima
-    indices = np.concatenate(([0],indices,[0]))==1
+    # detect crossing points
+    indices = MZgrad[0:-1]*MZgrad[1:]<=0 
+    indices = np.concatenate((indices,[False]))
+    # bool->list of indices
     indices_list = np.transpose(np.where(indices==True))
+    indices_list = indices_list[MZgrad2[indices_list]<0]#pick maxima
+    
+    
     
     #Remove any 'peaks' that aren't real
     indices_list = indices_list[intensities[indices_list] > min_intensity]
@@ -61,6 +46,11 @@ def gradient(mzs,intensities,**opt_args):
             indices_list = np.concatenate((indices_list, np.zeros((lengthDiff,1))))
     
     if weighted_bins > 0:
+        # check no peaks within bin width of spectrum edge
+        good_idx = (indices_list>weighted_bins) & (indices_list<(len(mzs)-weighted_bins))
+        mzs_list = mzs_list[good_idx]
+        intensities_list = intensities_list[good_idx]
+        indices_list = indices_list[good_idx]
         bin_shift = range(-weighted_bins,weighted_bins+1)
         for ii in range(0,len(mzs_list)):
             bin_idx = bin_shift+indices_list[ii]

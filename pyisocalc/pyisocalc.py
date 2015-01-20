@@ -28,10 +28,12 @@ from numpy import shape,asarray,prod,zeros,repeat #for cartesian product
 from numpy import random,histogram # for binning
 from numpy import pi,sqrt,exp,true_divide,multiply # misc math functions
 from numpy import linspace #for gaussian
+from numpy import copysign
 from itertools import groupby
 import operator
 import matplotlib.pyplot as plt #for plotting
 from MS.mass_spectrum import mass_spectrum
+from MS import centroid_detection
 
 #slowly changed to IUPAC 1997 isotopic compositions and IUPAC 2007 masses
 # see http://pac.iupac.org/publications/pac/pdf/1998/pdf/7001x0217.pdf for
@@ -142,9 +144,11 @@ PeriodicTable ={
 'Lr':[103, 0,[262.0],[1.0]],
 'Rf':[104, 0,[261.0],[1.0]],
 'Db':[105, 0,[262.0],[1.0]],
-'Sg':[106, 0,[266.0],[1.0]]
-}
+'Sg':[106, 0,[266.0],[1.0]],
+'Ee':[0,0,[0.000548597],[1.0]]}
 
+mass_electron = 0.00054857990924
+ 
 #######################################
 # Collect properties
 #######################################
@@ -324,7 +328,7 @@ def genDict(m,n,charges,cutoff):
 	phrases=[]
 	for item in signals.keys():
 		phrases+= map(lambda n:sum(n),[signals[item]])
-		keys+=[item/abs(charges)]
+		keys+=[(item-(charges*mass_electron))/abs(charges)]
 
 	semifinal=dict(zip(keys,phrases))
 
@@ -404,7 +408,7 @@ def checkoutput(output):
 ########
 # main function#
 ########
-def isodist(molecules,charges=1,output='',plot=False,sigma=0.35,resolution=250,cutoff=0.001):
+def isodist(molecules,charges=0,output='',plot=False,sigma=0.35,resolution=250,cutoff=0.0001,do_centroid=True):
 
 	exit = checkhelpcall(molecules)
 	save = checkoutput(output)
@@ -423,6 +427,7 @@ def isodist(molecules,charges=1,output='',plot=False,sigma=0.35,resolution=250,c
 			charges=1
 	else:
 		print "Using user-supplied charge of %d for mass spectrum" % charges
+	
 	isomasses=isotopemasses(element)
 	isoratios=isotoperatios(element)
 
@@ -432,18 +437,21 @@ def isodist(molecules,charges=1,output='',plot=False,sigma=0.35,resolution=250,c
 	else:
 		final=genDict(isomasses[0],isoratios[0],charges,cutoff)
 
-	for i in sorted(final.keys()): #fast
-		if final[i]>cutoff:
-			print i,final[i]
+	#for i in sorted(final.keys()): #fast
+		#if final[i]>cutoff:
+			#print i,final[i]
 	pts = resolution2pts(min(final.keys()),max(final.keys()),resolution)
-	print pts	
+
 	xvector,yvector=genGaussian(final,sigma,pts) #slow
 	ms_output = mass_spectrum()
 	ms_output.add_mzs(xvector)
 	ms_output.add_intensities(yvector)
-	ms_output.detect_centroids(type='weighted_maxima')
+	if do_centroid:
+		mz_list,intensity_list,centroid_list = centroid_detection.gradient(ms_output.get_mzs(),ms_output.get_intensities(),max_output=-1,weighted_bins=5)
+		ms_output.add_centroids(mz_list,intensity_list)
 	if plot==True:
 		plt.plot(xvector,yvector)
+		plt.plot(mz_list,intensity_list,'rx')
 		plt.show()
 
 	if save==True:
