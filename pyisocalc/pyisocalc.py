@@ -32,8 +32,8 @@ from numpy import copysign
 from itertools import groupby
 import operator
 import matplotlib.pyplot as plt #for plotting
-from MS.mass_spectrum import mass_spectrum
-from MS import centroid_detection
+from pyMS.mass_spectrum import mass_spectrum
+from pyMS import centroid_detection
 
 #slowly changed to IUPAC 1997 isotopic compositions and IUPAC 2007 masses
 # see http://pac.iupac.org/publications/pac/pdf/1998/pdf/7001x0217.pdf for
