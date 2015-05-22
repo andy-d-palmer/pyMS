@@ -33,7 +33,7 @@ from itertools import groupby
 import operator
 import matplotlib.pyplot as plt #for plotting
 from pyMS.mass_spectrum import mass_spectrum
-from pyMS import centroid_detection
+from pyCentroidDetection import gradient
 
 #slowly changed to IUPAC 1997 isotopic compositions and IUPAC 2007 masses
 # see http://pac.iupac.org/publications/pac/pdf/1998/pdf/7001x0217.pdf for
@@ -398,7 +398,7 @@ def resolution2pts(min_x,max_x,resolution):
 	# turn resolving power into ft pts
 	# resolution = fwhm/max height
 	# turn resolution in points per mz then multipy by mz range
-	pts = resolution/1000 * (max_x-min_x)
+	pts = resolution/1000 * (max(max_x-min_x,1))
 	return pts
 def checkoutput(output):
 	save = True
@@ -408,7 +408,7 @@ def checkoutput(output):
 ########
 # main function#
 ########
-def isodist(molecules,charges=0,output='',plot=False,sigma=0.35,resolution=250,cutoff=0.0001,do_centroid=True):
+def isodist(molecules,charges=0,output='',plot=False,sigma=0.35,resolution=250,cutoff=0.0001,do_centroid=True,verbose=False):
 
 	exit = checkhelpcall(molecules)
 	save = checkoutput(output)
@@ -418,7 +418,8 @@ def isodist(molecules,charges=0,output='',plot=False,sigma=0.35,resolution=250,c
 	molecules=molecules.split(',')
 	for element in molecules:
 		element=formulaExpander(element)
-		print ('The mass of %(substance)s is %(Mass)f and the calculated charge is %(Charge)d with m/z of %(Mz)f.' % {'substance': \
+                if verbose:
+		    print ('The mass of %(substance)s is %(Mass)f and the calculated charge is %(Charge)d with m/z of %(Mz)f.' % {'substance': \
 			element, 'Mass': molmass(element), 'Charge': molcharge(element),'Mz':mz(molmass(element),molcharge(element),charges)})
 
 	if charges==0:
@@ -426,6 +427,7 @@ def isodist(molecules,charges=0,output='',plot=False,sigma=0.35,resolution=250,c
 		if charges==0:
 			charges=1
 	else:
+	    if verbose:
 		print "Using user-supplied charge of %d for mass spectrum" % charges
 	
 	isomasses=isotopemasses(element)
@@ -436,19 +438,21 @@ def isodist(molecules,charges=0,output='',plot=False,sigma=0.35,resolution=250,c
 		final=genDict(masses,ratios,charges,cutoff) #very slow
 	else:
 		final=genDict(isomasses[0],isoratios[0],charges,cutoff)
-
+	
 	#for i in sorted(final.keys()): #fast
 		#if final[i]>cutoff:
 			#print i,final[i]
-	pts = resolution2pts(min(final.keys()),max(final.keys()),resolution)
-
-	xvector,yvector=genGaussian(final,sigma,pts) #slow
 	ms_output = mass_spectrum()
-	ms_output.add_mzs(xvector)
-	ms_output.add_intensities(yvector)
 	if do_centroid:
-		mz_list,intensity_list,centroid_list = centroid_detection.gradient(ms_output.get_mzs(),ms_output.get_intensities(),max_output=-1,weighted_bins=5)
+	        pts = resolution2pts(min(final.keys()),max(final.keys()),resolution)
+	        xvector,yvector=genGaussian(final,sigma,pts) #slow
+	        
+	        ms_output.add_spectrum(xvector,yvector)
+		mz_list,intensity_list,centroid_list = gradient.gradient(ms_output.get_spectrum()[0],ms_output.get_spectrum()[1],max_output=-1,weighted_bins=5)
 		ms_output.add_centroids(mz_list,intensity_list)
+	else: 
+		mz_idx = sorted(final.keys())
+		ms_output.add_centroids(mz_idx,[final[f] for f in mz_idx])
 	if plot==True:
 		plt.plot(xvector,yvector)
 		plt.plot(mz_list,intensity_list,'rx')
