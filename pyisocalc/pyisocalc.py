@@ -597,3 +597,8 @@ def process_sf(str_in):
             else:
                 el[atom] += number
     return el
+
+def complex_to_simple(str_in):
+    el_dict = process_sf(str_in)
+    sf_str = "".join(["{}{}".format(a,el_dict[a]) for a in el_dict])
+    return sf_str
