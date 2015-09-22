@@ -159,7 +159,7 @@ PeriodicTable = {
     'Th': [90, 4, [232.0380504], [1.0]],  # iupac '97
     'Pa': [91, 4, [231.03588], [1.0]],
     'U': [92, 6, [234.0409456, 235.0439231, 236.0455619, 238.0507826], [0.000055, 0.007200, 0.0, 0.992745]],
-# iupac '97
+    # iupac '97
     'Np': [93, 5, [237.0], [1.0]],
     'Pu': [94, 3, [244.0], [1.0]],
     'Am': [95, 2, [243.0], [1.0]],
@@ -468,10 +468,10 @@ def isodist(molecules, charges=0, output='', plot=False, sigma=0.35, resolution=
         element = formulaExpander(element)
         if verbose:
             print (
-            'The mass of %(substance)s is %(Mass)f and the calculated charge is %(Charge)d with m/z of %(Mz)f.' % {
-                'substance': \
-                    element, 'Mass': molmass(element), 'Charge': molcharge(element),
-                'Mz': mz(molmass(element), molcharge(element), charges)})
+                'The mass of %(substance)s is %(Mass)f and the calculated charge is %(Charge)d with m/z of %(Mz)f.' % {
+                    'substance': \
+                        element, 'Mass': molmass(element), 'Charge': molcharge(element),
+                    'Mz': mz(molmass(element), molcharge(element), charges)})
 
     if charges == 0:
         charges = molcharge(element)
@@ -521,13 +521,14 @@ def isodist(molecules, charges=0, output='', plot=False, sigma=0.35, resolution=
         g.close
     return ms_output
 
+
 def str_to_el(str_in):
     import re
     atom_number = re.split('([A-Z][a-z]*)', str_in)
     el = {}
-    for atom,number in zip(atom_number[1::2],atom_number[2::2]):
+    for atom, number in zip(atom_number[1::2], atom_number[2::2]):
         if number == '':
-            number='1'
+            number = '1'
         number = int(number)
         if not atom in el:
             el[atom] = number
@@ -535,37 +536,39 @@ def str_to_el(str_in):
             el[atom] += number
     return el
 
+
 def rm_1bracket(str_in):
-    #find first and last brackets
+    # find first and last brackets
     rb = str_in.index(')')
     lb = str_in[0:rb].rindex('(')
 
     # check if multiplier after last bracket
-    if len(str_in)==rb+1: #end of string
+    if len(str_in) == rb + 1:  # end of string
         mult = "1"
-        mult_idx=0
+        mult_idx = 0
     else:
-        mult = str_in[rb+1]
-        mult_idx=1
-    if not mult.isdigit():#not a number
+        mult = str_in[rb + 1]
+        mult_idx = 1
+    if not mult.isdigit():  # not a number
         mult = '1'
-        mult_idx=0
+        mult_idx = 0
     # exband brackets
-    str_tmp=""
-    for m in range(0,int(mult)):
-        str_tmp=str_tmp+str_in[lb+1:rb]
-    if lb==0:
-        str_strt=""
+    str_tmp = ""
+    for m in range(0, int(mult)):
+        str_tmp = str_tmp + str_in[lb + 1:rb]
+    if lb == 0:
+        str_strt = ""
     else:
         str_strt = str_in[0:lb]
-    if rb==len(str_in)-1:
-        str_end=""
+    if rb == len(str_in) - 1:
+        str_end = ""
     else:
-        str_end=str_in[rb+1+mult_idx:]
-    return str_strt+str_tmp+str_end
+        str_end = str_in[rb + 1 + mult_idx:]
+    return str_strt + str_tmp + str_end
+
 
 def strip_bracket(str_in):
-    go=True
+    go = True
     try:
         while go == True:
             str_in = rm_1bracket(str_in)
@@ -574,20 +577,21 @@ def strip_bracket(str_in):
             raise
     return str_in
 
+
 def process_sf(str_in):
     import re
-    #split_sign
-    sub_strings = re.split('([\+-])',str_in)
-    if not sub_strings[0] in (('+','-')):
-        sub_strings = ["+"]+sub_strings
+    # split_sign
+    sub_strings = re.split('([\+-])', str_in)
+    if not sub_strings[0] in (('+', '-')):
+        sub_strings = ["+"] + sub_strings
     el = {}
-    for sign,sf in zip(sub_strings[0::2],sub_strings[1::2]):
-        #remove brackets
+    for sign, sf in zip(sub_strings[0::2], sub_strings[1::2]):
+        # remove brackets
         str_in = strip_bracket(sf)
         # count elements
         el_ = str_to_el(str_in)
         for atom in el_:
-            number = int('{}1'.format(sign))*el_[atom]
+            number = int('{}1'.format(sign)) * el_[atom]
             if not atom in el:
                 el[atom] = number
             else:
