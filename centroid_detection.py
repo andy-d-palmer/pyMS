@@ -15,6 +15,9 @@ def gradient(mzs, intensities, **opt_args):
     weighted_bins = function_args['weighted_bins']
     min_intensity = function_args['min_intensity']
     gradient_type=function_args['grad_type']
+    assert mzMaxNum < len(mzs)
+    assert len(mzs)==len(intensities)
+    assert weighted_bins < len(mzs)/2.
     # calc first&sectond differential
     if gradient_type == 'gradient':
         MZgrad = np.gradient(intensities)
