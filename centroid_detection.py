@@ -2,7 +2,7 @@ import numpy as np
 
 
 def gradient(mzs, intensities, **opt_args):
-    function_args = {'max_output': -1, 'weighted_bins': 1, 'min_intensity': 0}
+    function_args = {'max_output': -1, 'weighted_bins': 1, 'min_intensity': 0,'grad_type':'gradient'}
     for key, val in opt_args.iteritems():
         if key in function_args.keys():
             function_args[key] = val
@@ -14,13 +14,19 @@ def gradient(mzs, intensities, **opt_args):
     mzMaxNum = function_args['max_output']
     weighted_bins = function_args['weighted_bins']
     min_intensity = function_args['min_intensity']
-    # calc first differential
-    MZgrad = np.gradient(intensities)
-    # calc second differential
-    MZgrad2 = np.gradient(MZgrad)
+    gradient_type=function_args['grad_type']
+    # calc first&sectond differential
+    if gradient_type == 'gradient':
+        MZgrad = np.gradient(intensities)
+        MZgrad2 = np.gradient(MZgrad)[0:-1]
+    elif gradient_type == 'diff':
+        MZgrad = np.concatenate((np.diff(intensities),[1]))
+        MZgrad2 = np.diff(MZgrad)
+    else:
+        raise ValueError('gradient type {} not known'.format(gradient_type))
     # detect crossing points
     cPoint = MZgrad[0:-1] * MZgrad[1:] <= 0
-    mPoint = MZgrad2[0:-1]<0
+    mPoint = MZgrad2<0
     indices = cPoint & mPoint
     # bool->list of indices
     # Could check left/right of crossing point
