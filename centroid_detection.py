@@ -2,7 +2,7 @@ import numpy as np
 
 
 def gradient(mzs, intensities, **opt_args):
-    function_args = {'max_output': -1, 'weighted_bins': 1, 'min_intensity': 0,'grad_type':'gradient'}
+    function_args = {'max_output': -1, 'weighted_bins': 1, 'min_intensity': 1e-5,'grad_type':'gradient'}
     for key, val in opt_args.iteritems():
         if key in function_args.keys():
             function_args[key] = val
@@ -42,7 +42,7 @@ def gradient(mzs, intensities, **opt_args):
         if intensites_list_l[ii] > intensites_list_r[ii]:
             indices_list[ii] = indices_list_l[ii]
         else:
-            indices_list[ii] =indices_list_r[ii]
+            indices_list[ii] = indices_list_r[ii]
     indices_list=np.unique(np.asarray(indices_list))
     # Remove any 'peaks' that aren't real
     indices_list = indices_list[intensities[indices_list] > min_intensity]
@@ -71,7 +71,7 @@ def gradient(mzs, intensities, **opt_args):
         for ii in range(0, len(mzs_list)):
             bin_idx = bin_shift + indices_list[ii]
             mzs_list[ii] = np.average(mzs[bin_idx], weights=intensities[bin_idx])
-            indices_list[ii] = indices_list[ii] + np.argmax(intensities[bin_idx]) - weighted_bins
+            indices_list[ii] = indices_list[ii] + np.argmax(intensities[bin_idx]) - (1+weighted_bins)/2
             intensities_list[ii] = intensities[indices_list[ii]]
             # mzs_list[ii] = np.mean(mzs[bin_idx])
     return (mzs_list, intensities_list, indices_list)
