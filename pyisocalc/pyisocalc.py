@@ -317,7 +317,7 @@ def checkoutput(output):
 ########
 # main function#
 ########
-def isodist(molecules,charges=0,output='',plot=False,sigma=0.35,resolution=250,cutoff=0.0001,do_centroid=True,verbose=False):
+def isodist(molecules,charges=0,output='',plot=False,sigma=0.05,resolution=50000,cutoff=0.0001,do_centroid=True,verbose=False):
 
     exit = checkhelpcall(molecules)
     save = checkoutput(output)
@@ -345,15 +345,13 @@ def isodist(molecules,charges=0,output='',plot=False,sigma=0.35,resolution=250,c
     final = genDict(masses, ratios, charges, cutoff)
 
     ms_output = MassSpectrum()
+    pts = resolution2pts(min(final.keys()),max(final.keys()),resolution)
+    xvector,yvector=genGaussian(final,sigma,pts)
+    ms_output.add_spectrum(xvector,yvector)
     if do_centroid:
-        pts = resolution2pts(min(final.keys()),max(final.keys()),resolution)
-        xvector,yvector=genGaussian(final,sigma,pts)
-        ms_output.add_spectrum(xvector,yvector)
         mz_list,intensity_list,centroid_list = gradient(ms_output.get_spectrum()[0],ms_output.get_spectrum()[1],max_output=-1,weighted_bins=5)
         ms_output.add_centroids(mz_list,intensity_list)
-    else: 
-        mz_idx = sorted(final.keys())
-        ms_output.add_centroids(mz_idx,[final[f] for f in mz_idx])
+
     if plot==True:
         import matplotlib.pyplot as plt #for plotting        
         plt.plot(xvector,yvector)
