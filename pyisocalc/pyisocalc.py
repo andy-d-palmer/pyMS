@@ -302,10 +302,10 @@ def checkoutput(output):
 ########
 def isodist(molecules,charges=0,output='',plot=False,sigma=0.05,resolution=50000,cutoff=0.0001,do_centroid=True,verbose=False):
 
-    exit = checkhelpcall(molecules)
-    save = checkoutput(output)
-    if exit==True:
-        sys.exit(0) 
+    #exit = checkhelpcall(molecules)
+    #save = checkoutput(output)
+    #if exit==True:
+    #    sys.exit(0)
 
     molecules=molecules.split(',')
     for element in molecules:
@@ -343,13 +343,13 @@ def isodist(molecules,charges=0,output='',plot=False,sigma=0.05,resolution=50000
         plt.plot(mz_list,intensity_list,'rx')
         plt.show()
 
-    if save==True:
-        g=open(savefile,'w')
-        xs=xvector.tolist()
-        ys=yvector.tolist()
-        for i in range(0,len(xs)):
-            g.write(str(xs[i])+"\t"+str(ys[i])+"\n")
-        g.close
+    #if save==True:
+    #    g=open(savefile,'w')
+    #    xs=xvector.tolist()
+    #    ys=yvector.tolist()
+    #    for i in range(0,len(xs)):
+    #        g.write(str(xs[i])+"\t"+str(ys[i])+"\n")
+    #    g.close
     return ms_output
 
 
@@ -380,8 +380,8 @@ def rm_1bracket(str_in):
         mult = "1"
         mult_idx = 0
     else:
-        mult = str_in[rb + 1]
-        mult_idx = 1
+        mult = str_in[rb + 1:]
+        mult_idx = len(mult)
     if not mult.isdigit():  # not a number
         mult = '1'
         mult_idx = 0
@@ -431,14 +431,34 @@ def process_sf(str_in):
                 el[atom] += number
     return el
 
+
+def process_complexes(str_in):
+    """
+    Function splits strings at '.' and moves any preceding number to the end
+    so A.nB -> A+(B)n
+    :param str_in: molecular formula that may or may not contain complexes
+    :return: reformatted string
+    """
+    def _move_num_to_end(s):
+        # move initial numbers to end
+        alpha_idx = [ss.isalpha() for ss in s].index(True)
+        str_re = "({}){}".format(s[alpha_idx:],s[0:alpha_idx])
+        return str_re
+    str_in = str_in.split(".")
+    str_out = ["{}".format(s)  if s[0].isalpha()   else _move_num_to_end(s)  for s in str_in ]
+    str_out =  "+".join(str_out)
+    return str_out
+
+
 def prep_str(str_in):
-    str_in = str_in.replace(".","")
+    str_in = process_complexes(str_in) #turn A.nB into A+(B)n
+    str_in.split("+")
     return str_in
 
 def complex_to_simple(str_in):
     str_in = prep_str(str_in)
     el_dict = process_sf(str_in)
-    if any([e<0 for e in el_dict.values()]):
+    if any((all([e==0 for e in el_dict.values()]),any([e<0 for e in el_dict.values()]))):
         return None
     sf_str = "".join(["{}{}".format(a,el_dict[a]) for a in el_dict if el_dict[a]>0])
     return sf_str
