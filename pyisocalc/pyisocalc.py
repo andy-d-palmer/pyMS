@@ -238,7 +238,7 @@ def genDict(m,n,charges,cutoff):
     filter = n > cutoff
     m, n = m[filter], n[filter]
     n *= 100.0 / max(n)
-    m -= charges * PeriodicTable['Ee'][2]
+    m -= charges * PeriodicTable['Ee'][2][0]
     m /= abs(charges)
     return dict(zip(m, n))
 
