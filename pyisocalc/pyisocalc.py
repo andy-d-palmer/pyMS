@@ -239,7 +239,8 @@ def genDict(m,n,charges,cutoff):
     m, n = m[filter], n[filter]
     n *= 100.0 / max(n)
     m -= charges * PeriodicTable['Ee'][2][0]
-    m /= abs(charges)
+    if charges != 0:
+        m /= abs(charges)
     return dict(zip(m, n))
 
 def genGaussian(final,sigma, pts):
@@ -316,11 +317,8 @@ def isodist(molecules,charges=0,output='',plot=False,sigma=0.05,resolution=50000
 
     segments = list(getSegments(element))
 
-    if charges==0:
+    if charges==None:
         charges=sum(getCharge(x) for x in segments)
-        if charges==0:
-            charges=1
-    else:
         if verbose:
             print "Using user-supplied charge of %d for mass spectrum" % charges
 
@@ -444,6 +442,8 @@ def process_complexes(str_in):
         alpha_idx = [ss.isalpha() for ss in s].index(True)
         str_re = "({}){}".format(s[alpha_idx:],s[0:alpha_idx])
         return str_re
+    if '.' not in str_in:
+        return str_in
     str_in = str_in.split(".")
     str_out = ["{}".format(s)  if s[0].isalpha()   else _move_num_to_end(s)  for s in str_in ]
     str_out =  "+".join(str_out)

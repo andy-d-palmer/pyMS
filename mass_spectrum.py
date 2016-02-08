@@ -1,4 +1,7 @@
 import numpy as np
+import sys
+sys.path.append('/Users/palmer/Documents/python_codebase')
+import pyMS.normalisation
 
 
 class mass_spectrum():
@@ -7,6 +10,7 @@ class mass_spectrum():
         self.mzs = []
         self.intensities = []
         self.centroids = []
+        self.norm = []
         ## Private basic spectrum I/O
 
     def __add_mzs(self, mzs):
@@ -55,9 +59,13 @@ class mass_spectrum():
             intensities = self.__get_intensities_centroids()
         else:
             raise IOError('spectrum source should be profile or centroids')
-        max_idx = np.argmax(intensities)
+        #max_idx = np.argmax(intensities)
         return mzs, intensities
 
+    def normalise_spectrum(self,method="tic"):
+        self.centroids_intensity = pyMS.normalisation.apply_normalisation(self.centroids_intensity, method)
+        self.intensities = pyMS.normalisation.apply_normalisation(self.intensities, method)
+        self.norm.append("method")
 
 class MSn_spectrum(mass_spectrum):
     def __init__(self):

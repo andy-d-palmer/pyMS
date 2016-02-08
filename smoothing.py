@@ -13,6 +13,7 @@ def sg_smooth(mzs,intensities,n_smooth=1,w_size=5):
 def apodization(mzs,intensities,w_size=10):
     import scipy.signal as signal
     win = signal.hann(w_size)
+    win = signal.slepian(w_size,0.3)
     intensities = signal.fftconvolve(intensities, win, mode='same') / sum(win)
     intensities[intensities<1e-6]=0
     return intensities
@@ -33,3 +34,7 @@ def fast_change(mzs,intensities,diff_thresh=0.01):
     diff = signal.medfilt(diff)
     intensities[diff<diff_thresh] = 0
     return intensities
+
+def median(mzs,intensities, w_size=3):
+    import scipy.signal as signal
+    return signal.medfilt(intensities,kernel_size=w_size)

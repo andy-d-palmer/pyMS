@@ -18,6 +18,7 @@ class MSdataset():
 		self.mz_min=this_spectrum.mzs[0]
 	    if this_spectrum.mzs[-1]>self.mz_max:
 		self.mz_max=this_spectrum.mzs[-1]
+
         if np.all(spec_length==spec_length[1]):
             self.consistent_mz = True
         else:
